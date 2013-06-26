@@ -439,7 +439,10 @@ def process_basic_method(td):
 	tokens = [b.get_text() for b in bs]
 	if len(tokens) >= 2:
 		if 'move' in tokens[1] or 'roll' in tokens[1] or 'turn' in tokens[1]: 
-			curr_node = Option1_Node(option1_get_type(tokens[1]), tokens[2], tokens[3], tokens[0])
+			if len(tokens) > 3:
+				curr_node = Option1_Node(option1_get_type(tokens[1]), tokens[2], tokens[3], tokens[0])
+			else:
+				curr_node = Option1_Node(option1_get_type(tokens[1]), tokens[2], 0, tokens[0])
 			insert_into_tree(parents.top(), curr_node)
 			return True
 	return False
