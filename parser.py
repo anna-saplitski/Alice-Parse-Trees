@@ -528,12 +528,15 @@ def option1_get_type(str):
 # returns the methods table HTML using the Beautiful Soup tree structure. 
 def get_methods_table(soup): 
 	h3s = soup.find_all('h3')
+	methods = None
 	for node in h3s: 
 		if node.get_text() == "Methods": 
 			methods = node
 			break
-	methods_table = methods.next_sibling.next_sibling # the methods table
-	return methods_table
+	if methods is not None:
+                methods_table = methods.next_sibling.next_sibling # the methods table
+                return methods_table
+        return None
 
 def get_fns_table(soup): 
 	# uses the Beautiful Soup tree structure to find and return the functions table. 

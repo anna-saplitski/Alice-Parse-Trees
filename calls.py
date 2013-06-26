@@ -22,7 +22,7 @@ class Call( Node ):
 	prints the child nodes
 	"""
 	def print_children(self, indent_level): 
-		print(self.called_method_name)
+		print(self.called_name)
 		for param in self.parameters: 
 			param.print_node(indent_level + 1)
 """
