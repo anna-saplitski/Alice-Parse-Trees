@@ -1,0 +1,29 @@
+
+METHODS
+
+       ROOT(world.my first method): 
+        (ROOT L) DoInOrder: 
+             DoTogether: 
+                MoveAnimation: Type = MoveAnimation, Direction = forward, Subject = chicken, Duration = 1.0, Amount = 1
+
+                DoTogether: 
+                   MoveAnimation: Type = MoveAnimation, Direction = up, Subject = chicken, Duration = 1.0, Amount = 1
+
+                   TurnAnimation: Type = TurnAnimation, Direction = forward, Subject = chicken.LeftLeg, Duration = 1.0, Amount =  
+                      FunctionCall: 0.2 
+
+                   TurnAnimation: Type = TurnAnimation, Direction = backward, Subject = chicken.RightLeg, Duration = 1.0, Amount =  
+                      FunctionCall: 0.2 
+
+                DoTogether: 
+                   MoveAnimation: Type = MoveAnimation, Direction = down, Subject = chicken, Duration = 1.0, Amount = 1
+
+                   TurnAnimation: Type = TurnAnimation, Direction = backward, Subject = chicken.LeftLeg, Duration = 1.0, Amount =  
+                      FunctionCall: 0.2 
+
+                   TurnAnimation: Type = TurnAnimation, Direction = forward, Subject = chicken.RightLeg, Duration = 1.0, Amount =  
+                      FunctionCall: 0.2 
+
+
+
+FUNCTIONS

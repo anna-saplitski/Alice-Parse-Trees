@@ -1,3 +1,9 @@
+"""
+2 data structures, for convenience. The Stack is a conventional stack built with
+an underlying array. The Nesting is a Stack with a built in method that decreases 
+each element in its array by 1. It is used for keeping track of spacing. 
+"""
+
 class Stack: 
 	def __init__(self): 
 		self.list = []

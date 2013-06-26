@@ -1,5 +1,7 @@
 This is a parser to build ASTs out of HTML files of Alice programs. It uses Beautiful Soup, an HTML parser in Python, that you can download here: http://www.crummy.com/software/BeautifulSoup/#Download
 
+The Beautiful Soup documentation is available at: http://www.crummy.com/software/BeautifulSoup/bs3/documentation.html
+
 To generate the HTML file in an Alice program, go to File -> Export Code for Printing
 
 USAGE: python parser.py [FILEPATH to 1 HTML file]

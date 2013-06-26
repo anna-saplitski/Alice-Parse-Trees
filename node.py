@@ -1,3 +1,10 @@
+"""
+Elements in the AST have various types. Node is the parent class of them all. 
+(It is never used directly).
+Each Node has a left_child, a right_child, a type, an address, and a name. 
+
+"""
+
 class Node: 
 	def __init__(self): 
 		self.parent = None
@@ -6,6 +13,10 @@ class Node:
 		self.type = ""
 		self.address = ""
 		self.name = None
+
+	"""
+	Various setter and getter methods. 
+	"""
 
 	# p is a Node
 	def set_parent(self, p): 
@@ -41,13 +52,18 @@ class Node:
 	def get_address(self): 
 		return self.address
 
-	#VIRTUAL TODO
 	def is_root(self): 
 		return false
 
 	def get_print_name_for_node(self): 
 		return self.type
 
+
+	""""
+	Recursively prints out the Node's details and then prints those of its children with
+	the appropriate spacing determined by the indent_level, with an optional label. 
+	print_children(indent_level) is a virtual function that is defined by each Node subclass differently. 
+	"""
 	# indent_level is an int, label is a string
 	def print_node(self, indent_level, label=None):  
 		num_spaces = 3
@@ -62,22 +78,6 @@ class Node:
 
 		print self.get_print_name_for_node() + ':',
 
-
-		"""
-		printf("\n"); 
-    
-   		printf("%*s", numSpaces, ""); 
-    
-    	printf("%*s%s%s: ", indentLevel*numSpaces, "", label? label : "", GetPrintNameForNode()); 
-    
-		"""
-
 		self.print_children(indent_level)
-		#print "left type: " + self.left_child.get_type()
-		#print "right type: " + self.right_child.get_type()
-
-	"""#VIRTUAL TODO
-	def print_children(self, indent_level): 
-		print "in printchildren" """
 
 
