@@ -2,7 +2,7 @@ import sys
 import os
 import hashlib
 
-def md5Checksum(fname):
+def withAuthor(fname):
     with open(fname, "r") as fh:
         m = hashlib.md5()
         while True:
@@ -12,10 +12,23 @@ def md5Checksum(fname):
             m.update(data)
         return m.hexdigest()
 
-def stringHash(fname):
+def withoutAuthor(fname):
     with open(fname, "r") as fh:
+        m = hashlib.md5()
         data = fh.read()
-        print data
+        dash = data.replace('/', '(', 2).find('/')
+        data = data[dash:]
+        m.update(data)
+    return m.hexdigest()
+
+def withoutAuthorProcessed(fname):
+    with open(fname, "r") as fh:
+        m = hashlib.md5()
+        data = fh.read()
+        dash = data.replace('/', '(', 2).find('/')
+        data = ''.join(data[dash:].lower().split())
+        m.update(data)
+    return m.hexdigest()
     
 def chunk_reader(fobj, chunk_size=1024):
     """Generator that reads a file in chunks of bytes"""
@@ -42,8 +55,7 @@ def check_for_duplicates(paths, hash=hashlib.sha1):
                     hashobj = hash()
                     for chunk in chunk_reader(open(full_path, 'rb')):
                         hashobj.update(chunk)
-                   # stringHash(full_path)
-                    file_id = md5Checksum(full_path)
+                    file_id = withoutAuthorProcessed(full_path)
                     duplicate = hashes.get(file_id, None)
                     if duplicate:
                         nrdup +=1
