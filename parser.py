@@ -298,7 +298,10 @@ def process_loop(td):
 	if 'Loop' in tokens[0]: 
 		if len(tokens) == 3:
 			# default start and increment values
-			curr_node = Loop_Node(float(tokens[1]))
+			try:
+				curr_node = Loop_Node(float(tokens[1]))
+			except ValueError:
+				curr_node = Loop_Node(0)
 			insert_into_tree(parents.top(), curr_node)
 			parents.push(curr_node) # pushes onto tree so the statements in the loop have the 
 			# Loop_Node as their parent. 
@@ -413,7 +416,10 @@ def sf1_get_type(token):
 def process_nested_filler(td): 	
 	# if td is a filler element, pushes the number of nonfiller elements onto nesting. 
 	if td.get_text().replace('nbsp;', '') == '': 
-		nesting.push(int(td['rowspan']))
+		try:
+			nesting.push(int(td['rowspan']))
+		except KeyError:
+			pass
 		return True
 	return False
 
@@ -441,8 +447,10 @@ def process_basic_method(td):
 		if 'move' in tokens[1] or 'roll' in tokens[1] or 'turn' in tokens[1]: 
 			if len(tokens) > 3:
 				curr_node = Option1_Node(option1_get_type(tokens[1]), tokens[2], tokens[3], tokens[0])
-			else:
+			if len(tokens) > 2:
 				curr_node = Option1_Node(option1_get_type(tokens[1]), tokens[2], 0, tokens[0])
+			else:
+				curr_node = Option1_Node(option1_get_type(tokens[1]), "No direction", 0, tokens[0])
 			insert_into_tree(parents.top(), curr_node)
 			return True
 	return False
