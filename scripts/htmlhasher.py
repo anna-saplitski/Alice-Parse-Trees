@@ -64,7 +64,7 @@ def check_for_duplicates(paths, hash=hashlib.sha1):
                     else:
                         nrunique += 1
                         hashes[file_id] = full_path
-                        shutil.copy2(full_path, '/home/Johan/results')
+                        #shutil.copy2(full_path, '/home/Johan/results')
                 else:
                     nrnonhtmlfiles += 1
                     if fileExtension != '.txt':

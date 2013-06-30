@@ -1,0 +1,170 @@
+
+METHODS
+
+       ROOT(comboLock.close): 
+        (ROOT L) DoInOrder: 
+             RollAnimation: Type = RollAnimation, Direction = left, Subject = comboLock.latch, Duration = 1.0, Amount = 0
+
+
+
+       ROOT(world.my first method): 
+        (ROOT L) DoInOrder: 
+             MoveAnimation: Type = MoveAnimation, Direction = No direction, Subject = // , Duration = 1.0, Amount = 0
+
+             Sequence: 
+              (L) LoopNInOrder: 
+                 (START) Double: Value = 0.0
+
+                 (END) Double: Value = 15.0
+
+                 (INCREMENT) Double: Value = 1.0
+
+                 (ACTIONS) MethodCall: comboLock.leftOne
+
+              (R) Sequence: 
+                 (L) Wait: 
+                    (DURATION) Double: Value = 1.0
+
+                 (R) Sequence: 
+                    (L) MethodCall: comboLock.rightRevolution
+
+                    (R) Sequence: 
+                       (L) LoopNInOrder: 
+                          (START) Double: Value = 0.0
+
+                          (END) Double: Value = 31.0
+
+                          (INCREMENT) Double: Value = 1.0
+
+                          (ACTIONS) MethodCall: comboLock.rightOne
+
+                       (R) Sequence: 
+                          (L) Wait: 
+                             (DURATION) Double: Value = 1.0
+
+                          (R) Sequence: 
+                             (L) LoopNInOrder: 
+                                (START) Double: Value = 0.0
+
+                                (END) Double: Value = 13.0
+
+                                (INCREMENT) Double: Value = 1.0
+
+                                (ACTIONS) MethodCall: comboLock.leftOne
+
+                             (R) Sequence: 
+                                (L) Wait: 
+                                   (DURATION) Double: Value = 1.0
+
+                                (R) Sequence: 
+                                   (L) MethodCall: comboLock.open
+
+                                   (R) Sequence: 
+                                      (L) MethodCall: comboLock.close
+
+                                      (R) Sequence: 
+                                         (L) LoopNInOrder: 
+                                            (START) Double: Value = 0.0
+
+                                            (END) Double: Value = 3.0
+
+                                            (INCREMENT) Double: Value = 1.0
+
+                                            (ACTIONS) MethodCall: comboLock.leftOne
+
+                                         (R) Wait: 
+                                            (DURATION) Double: Value = 1.0
+
+        (ROOT R) Sequence: 
+           (L) LoopNInOrder: 
+              (START) Double: Value = 0.0
+
+              (END) Double: Value = 25.0
+
+              (INCREMENT) Double: Value = 1.0
+
+              (ACTIONS) MethodCall: comboLock.leftOne
+
+           (R) Sequence: 
+              (L) Wait: 
+                 (DURATION) Double: Value = 1.0
+
+              (R) Sequence: 
+                 (L) LoopNInOrder: 
+                    (START) Double: Value = 0.0
+
+                    (END) Double: Value = 16.0
+
+                    (INCREMENT) Double: Value = 1.0
+
+                    (ACTIONS) MethodCall: comboLock.rightOne
+
+                 (R) Sequence: 
+                    (L) Wait: 
+                       (DURATION) Double: Value = 1.0
+
+                    (R) Sequence: 
+                       (L) LoopNInOrder: 
+                          (START) Double: Value = 0.0
+
+                          (END) Double: Value = 3.0
+
+                          (INCREMENT) Double: Value = 1.0
+
+                          (ACTIONS) MethodCall: comboLock.leftOne
+
+                       (R) Sequence: 
+                          (L) MethodCall: comboLock.open
+
+                          (R) Sequence: 
+                             (L) MethodCall: comboLock.close
+
+                             (R) LoopNInOrder: 
+                                (START) Double: Value = 0.0
+
+                                (END) Double: Value = 12.0
+
+                                (INCREMENT) Double: Value = 1.0
+
+                                (ACTIONS) MethodCall: comboLock.rightOne
+
+
+
+       ROOT(comboLock.rightRevolution): 
+        (ROOT L) DoInOrder: 
+             TurnAnimation: Type = TurnAnimation, Direction = No direction, Subject = // , Duration = 1.0, Amount = 0
+
+             RollAnimation: Type = RollAnimation, Direction = right, Subject = comboLock.dial, Duration = 1.0, Amount = 0
+
+
+
+       ROOT(comboLock.open): 
+        (ROOT L) DoInOrder: 
+             RollAnimation: Type = RollAnimation, Direction = right, Subject = comboLock.latch, Duration = 1.0, Amount = 0
+
+
+
+       ROOT(comboLock.leftRevolution): 
+        (ROOT L) DoInOrder: 
+             TurnAnimation: Type = TurnAnimation, Direction = No direction, Subject = // , Duration = 1.0, Amount = 0
+
+             RollAnimation: Type = RollAnimation, Direction = left, Subject = comboLock.dial, Duration = 1.0, Amount = 0
+
+
+
+       ROOT(comboLock.rightOne): 
+        (ROOT L) DoInOrder: 
+             RollAnimation: Type = RollAnimation, Direction = right, Subject = comboLock.dial, Duration = 1.0, Amount = 0
+
+
+
+       ROOT(comboLock.leftOne): 
+        (ROOT L) DoInOrder: 
+             <None>: 
+              (L) Operation: 
+                   Operator: // 
+             RollAnimation: Type = RollAnimation, Direction = left, Subject = comboLock.dial, Duration = 1.0, Amount = 0
+
+
+
+FUNCTIONS
