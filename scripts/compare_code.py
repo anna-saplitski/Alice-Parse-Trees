@@ -1,19 +1,12 @@
 import os
 from Tkinter import *
-import threading
-import time
 
-class Window(threading.Thread):
+class Window():
 	def __init__(self):
-		threading.Thread.__init__(self)	
-		self.start()
-		
-	def callback(self):
-		self.root.quit()
-		
-	def run(self):
 		self.curr = 0			
 		self.root = Tk()
+		
+		self.fs = FileSelector()
 		
 		self.frame1 = Frame(self.root,borderwidth=2,relief=SUNKEN)
 		self.frame2 = Frame(self.root,borderwidth=2,relief=SUNKEN)
@@ -35,20 +28,31 @@ class Window(threading.Thread):
 		
 		
 		self.question = Label(self.root, text="Are these two code pieces functionally the same?")
-		self.question.grid(row=1)
+		self.question.grid(row=1, columnspan=2)
 		
-		def callback():
-			self.curr +=1
-			print self.curr
+		def wasSimilar():
+			self.fs.similar = True
+			self.fs.updateFiles()
+			self.addCodePages(self.fs.file1, self.fs.file2)
 			
-		self.b = Button(self.root, text="OK", command=callback)
-		self.b.grid(row=1, column=1)
-
+		self.yesb = Button(self.root, text="YES", command=wasSimilar)
+		self.yesb.pack(side=RIGHT)
+		self.yesb.grid(row=2, column=0)
+		
+		def wasNotSimilar():
+			self.fs.similar = False
+			self.fs.updateFiles()
+			self.addCodePages(self.fs.file1, self.fs.file2)
+		
+		self.nob = Button(self.root, text="NO", command=wasNotSimilar)
+		self.nob.pack(side=LEFT)
+		self.nob.grid(row=2, column=1)
+		
 		self.root.title("Hello")
+		self.addCodePages(self.fs.file1, self.fs.file2)
 		self.root.mainloop()
 	
 	def addCodePages(self, fname1, fname2):	
-		print "hello"
 		with open(fname1, "r") as fh1:
 			with open(fname2, "r") as fh2:
 				content1 = fh1.read()
@@ -59,8 +63,17 @@ class Window(threading.Thread):
 				self.text2.insert(INSERT, content2)	
 		self.curr += 1
 	
+
+class FileSelector():
+	def __init__(self):
+		self.file1 = "C:/Documents and Settings/Johan/Documents/GitHub/Alice-Parse-Trees/tests/49.txt"
+		self.file2 = "C:/Documents and Settings/Johan/Documents/GitHub/Alice-Parse-Trees/tests/249.txt"
+		self.similar = False
 		
+	def updateFiles(self):
+		if self.similar:
+			pass
+		else:
+			pass
 		
 win = Window()
-time.sleep(.5)
-win.addCodePages("C:/Documents and Settings/Johan/Documents/GitHub/Alice-Parse-Trees/tests/49.txt",	"C:/Documents and Settings/Johan/Documents/GitHub/Alice-Parse-Trees/tests/249.txt")
