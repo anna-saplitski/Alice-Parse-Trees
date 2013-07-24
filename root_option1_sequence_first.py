@@ -71,11 +71,10 @@ class Option1_Node( Node ):
 		# tries to see if am is a valid int value. If not, then assumes it 
 		# is a function call. 
 		try: 
-			self.amount = int(am)
+			self.amount = float(am)
 		except ValueError: 
 			# function name
 			self.left_child = Function_Call(am, None)
-
 	# prints the child nodes. 
 	def print_children(self, indent_level): 
 		if self.left_child is None: 

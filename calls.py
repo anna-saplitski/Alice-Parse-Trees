@@ -1,4 +1,5 @@
 from node import Node 
+methods = dict() # maps method names (strings) to their root node
 
 class Call( Node ): 
 	# name is a string, points_to is a Node
@@ -22,7 +23,15 @@ class Call( Node ):
 	prints the child nodes
 	"""
 	def print_children(self, indent_level): 
-		print(self.called_name)
+		curr_meth = None
+		try:
+			curr_meth = methods[self.called_name]
+		except KeyError:
+			pass
+		if curr_meth is not None:
+			curr_meth.print_node(indent_level)
+		else:
+			print self.called_name
 		for param in self.parameters: 
 			param.print_node(indent_level + 1)
 """

@@ -1,28 +1,29 @@
 import sys
 import os
 import shutil
+		
+	
+COMBOLOCKTASK = "7_4/"
+CHECKCANDYTASK = "4/"
+SLAPPYTASK = "5_15/"
+FROGLADYBUGTASK = "7_5/"
+SNOWMOBILETASK = "13/"
+FUNKYCHICKENTASK = "14/"
+FROGESCAPETASK = "15/"
+SNOWPEOPLETASK = "1_3/"
+SOLDIERTASK = "1_5/"
+CIRCLINGFISHTASK = "2_4/"
+TORTOISETASK = "2_5/"
 
-COMBOLOCKTASK = "7_4"
-CHECKCANDYTASK = "4"
-SLAPPYTASK = "5_15"
-FROGLADYBUGTASK = "7_5"
-SNOWMOBILETASK = "13"
-FUNKYCHICKENTASK = "14"
-FROGESCAPETASK = "15"
-SNOWPEOPLETASK = "1_3"
-SOLDIERTASK = "1_5"
-CIRCLINGFISHTASK = "2_4"
-TORTOISETASK = "2_5"
-
-EMPTYTASK = "0"
-JUMPINGCHICKENTASK = "5"
-BURGLARTASK = "6"
-ROVERTASK = "7"
-THREEFROGTASK = "8"
-DANCINGBUNNYTASK = "9"
-CHESIRECATTASK = "10"
-CARTASK = "11"
-BUNNYFLIPPINGTASK = "12"
+EMPTYTASK = "0/"
+JUMPINGCHICKENTASK = "5/"
+BURGLARTASK = "6/"
+ROVERTASK = "7/"
+THREEFROGTASK = "8/"
+DANCINGBUNNYTASK = "9/"
+CHESIRECATTASK = "10/"
+CARTASK = "11/"
+BUNNYFLIPPINGTASK = "12/"
 
 basePathWin = "C:\cygwin\home\Johan\AliceData"
 basePath = "/home/Johan/AliceData/"
@@ -48,7 +49,7 @@ def a6(id, namePath):
 		elif ("2.4" in dirpath or "circ" in dirpath or "Circ" in dirpath or "fish" in dirpath or "Fish" in dirpath) and dirpath.find("Source Code") >= 0:
 			renameFiles(id, CIRCLINGFISHTASK, dirpath)
 		elif ("2.5" in dirpath or "tort" in dirpath or "Tort" in dirpath or "cook" in dirpath or "Cook" in dirpath) and dirpath.find("Source Code") >= 0:
-			renameFiles(id, CIRCLINGFISHTASK, dirpath)
+			renameFiles(id, TORTOISETASK, dirpath)
 	
 def a7(id, namePath):
 	for dirpath, dirnames, filenames in os.walk(namePath):
@@ -142,29 +143,7 @@ if not os.path.exists(targetPath + CARTASK):
     os.makedirs(targetPath + CARTASK)
 if not os.path.exists(targetPath + BUNNYFLIPPINGTASK):
     os.makedirs(targetPath + BUNNYFLIPPINGTASK)
-		
-	
-COMBOLOCKTASK = "7_4/"
-CHECKCANDYTASK = "4/"
-SLAPPYTASK = "5_15/"
-FROGLADYBUGTASK = "7_5/"
-SNOWMOBILETASK = "13/"
-FUNKYCHICKENTASK = "14/"
-FROGESCAPETASK = "15/"
-SNOWPEOPLETASK = "1_3/"
-SOLDIERTASK = "1_5/"
-CIRCLINGFISHTASK = "2_4/"
-TORTOISETASK = "2_5/"
 
-EMPTYTASK = "0/"
-JUMPINGCHICKENTASK = "5/"
-BURGLARTASK = "6/"
-ROVERTASK = "7/"
-THREEFROGTASK = "8/"
-DANCINGBUNNYTASK = "9/"
-CHESIRECATTASK = "10/"
-CARTASK = "11/"
-BUNNYFLIPPINGTASK = "12/"
 
 	
 		
@@ -181,29 +160,29 @@ for assignment in os.listdir (sys.argv[1]):
 							idnrs[name] = idnr
 							idnr += 1
 						id = idnrs[name]
-						
-						if assignment == "Assignment__6___Introduction_to_Alice_all_files":
-							a6(id, namePath)
-						elif assignment == "Assignment_7___Programming_in_Alice_all_files":
-							a7(id, namePath)
-						elif assignment == "Assignment_8a__More_programming_in_Alice_all_files":
-							a8(id, namePath)
-						elif assignment == "Lab_for_Class_Wednesday_2_13_all_files":
-							l213(id, namePath)
-						elif assignment == "Lab_for_Class_Friday_2_15_all_files":
-							l215(id, namePath)
-						elif assignment == "Lab_for_class_Wednesday_2_20_all_files":
-							l220(id, namePath)
-						elif assignment == "Lab_for_class_Friday_2_22_all_files":
-							l222(id, namePath)
-						elif assignment == "Lab_for_class_Monday_2_25_all_files":
-							l225(id, namePath)
-						elif assignment == "Lab_for_Class_Wednesday_2_27_all_files":
-							l227(id, namePath)
-						elif assignment == "Lab_for_class_Friday_3_1_all_files":
-							l31(id, namePath)
-						elif assignment == "Lab_for_class_3_4_all_files":
-							l34(id, namePath)
-						elif assignment == "Lab_for_Class_3_6_all_files":
-							l36(id, namePath)
+print idnrs
+						# if assignment == "Assignment__6___Introduction_to_Alice_all_files":
+							# a6(id, namePath)
+						# elif assignment == "Assignment_7___Programming_in_Alice_all_files":
+							# a7(id, namePath)
+						# elif assignment == "Assignment_8a__More_programming_in_Alice_all_files":
+							# a8(id, namePath)
+						# elif assignment == "Lab_for_Class_Wednesday_2_13_all_files":
+							# l213(id, namePath)
+						# elif assignment == "Lab_for_Class_Friday_2_15_all_files":
+							# l215(id, namePath)
+						# elif assignment == "Lab_for_class_Wednesday_2_20_all_files":
+							# l220(id, namePath)
+						# elif assignment == "Lab_for_class_Friday_2_22_all_files":
+							# l222(id, namePath)
+						# elif assignment == "Lab_for_class_Monday_2_25_all_files":
+							# l225(id, namePath)
+						# elif assignment == "Lab_for_Class_Wednesday_2_27_all_files":
+							# l227(id, namePath)
+						# elif assignment == "Lab_for_class_Friday_3_1_all_files":
+							# l31(id, namePath)
+						# elif assignment == "Lab_for_class_3_4_all_files":
+							# l34(id, namePath)
+						# elif assignment == "Lab_for_Class_3_6_all_files":
+							# l36(id, namePath)
 					

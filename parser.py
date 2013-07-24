@@ -17,7 +17,6 @@ from util import Stack, Nesting
 parents = Stack() 
 nesting = Nesting() # nesting.top() contains the remaining number of non &nbsp
 # left to parse in the current level of nesting
-methods = dict() # maps method names (strings) to their root node
 functions = dict() # maps function names (strings) to their root node
 
 def parser(): 
@@ -36,18 +35,35 @@ def parser():
 	# of the nbsp's
 	soup = BeautifulSoup(content)
 	h2s = soup.find_all('h2')
+	
+	first_events_table = get_events_table(soup)
 	first_methods_table = get_methods_table(soup) # uses the tree structure to get the methods table
 	first_fns_table = get_fns_table(soup) # uses the tree structure to get the functions table. 
 
 	tables = soup.find_all('table')
+	# print len(tables)
+	beginning_events_counter = -1
 	beginning_methods_counter = -1
 	beginning_fns_counter = -1
 	for i, t in enumerate(tables): 
+		if t == first_events_table: 
+			beginning_events_counter = i
 		if t == first_methods_table: 
 			beginning_methods_counter = i
 		if t == first_fns_table: 
 			beginning_fns_counter = i
-
+	
+	#processing the event
+	well_formed = False
+	root_method = None
+	if len(tables) > 1:
+		if get_method_name(tables[0]) == "When the world starts":
+			well_formed = True
+			root_method = tables[1]
+	
+			
+		
+	
 	# processing the methods
 	for i in range(beginning_methods_counter, len(tables)): 
 
@@ -135,8 +151,17 @@ def parser():
 	# fn call
 	replace_strings_with_fn_calls() 
 
-	print_methods()
-	print_functions()
+	# print_methods()
+	# print_functions()
+	if well_formed:
+		print_root_method(root_method)
+	
+def print_root_method(root_method):
+	for method in methods:
+		if method == get_method_name(root_method):
+			methods[method].set_method_name(method)
+			methods[method].print_node(0)
+		
 
 def process_methods(tables, start_index, end_index): 
 	pass
@@ -447,10 +472,10 @@ def process_basic_method(td):
 		if 'move' in tokens[1] or 'roll' in tokens[1] or 'turn' in tokens[1]: 
 			if len(tokens) > 3:
 				curr_node = Option1_Node(option1_get_type(tokens[1]), tokens[2], tokens[3], tokens[0])
-			if len(tokens) > 2:
-				curr_node = Option1_Node(option1_get_type(tokens[1]), tokens[2], 0, tokens[0])
+			elif len(tokens) > 2:
+				curr_node = Option1_Node(option1_get_type(tokens[1]), tokens[2], 1, tokens[0])
 			else:
-				curr_node = Option1_Node(option1_get_type(tokens[1]), "No direction", 0, tokens[0])
+				curr_node = Option1_Node(option1_get_type(tokens[1]), "No direction", 1, tokens[0])
 			insert_into_tree(parents.top(), curr_node)
 			return True
 	return False
@@ -536,6 +561,23 @@ def option1_get_type(str):
 	if 'turn' in str: 
 		return 'TurnAnimation'
 
+# returns the events table
+
+def get_events_table(soup): 
+	h3s = soup.find_all('h3')
+	events = None
+	for node in h3s: 
+		if node.get_text() == "Events": 
+			events = node
+			break
+	if events is not None:
+		if str(events.next_sibling).isspace(): # check if there is HTML filler content we need to skip
+			events_table = events.next_sibling.next_sibling # the events table
+		else:
+			events_table = events.next_sibling # the events table
+		return events_table
+	return None
+		
 # returns the methods table HTML using the Beautiful Soup tree structure. 
 def get_methods_table(soup): 
 	h3s = soup.find_all('h3')
@@ -545,9 +587,12 @@ def get_methods_table(soup):
 			methods = node
 			break
 	if methods is not None:
-                methods_table = methods.next_sibling.next_sibling # the methods table
-                return methods_table
-        return None
+		if str(methods.next_sibling).isspace(): # check if there is HTML filler content we need to skip
+			methods_table = methods.next_sibling.next_sibling # the methods table
+		else:
+			methods_table = methods.next_sibling # the methods table
+		return methods_table
+	return None
 
 def get_fns_table(soup): 
 	# uses the Beautiful Soup tree structure to find and return the functions table. 
