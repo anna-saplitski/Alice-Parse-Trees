@@ -8,6 +8,7 @@ import numpy
 import array
 import Pycluster
 import shutil
+from sklearn.cluster import AffinityPropagation
 from random import randint
 
 def stringDiffComparison(fname1, fname2):
@@ -72,11 +73,12 @@ def automaticComparison(fname1, fname2):
 	bagWordScore = 0
 	apiCallScore = 0
 	astSimilarityScore = 0
-	# stringDiffScore = stringDiffComparison(fname1, fname2)	
+#	stringDiffScore = stringDiffComparison(fname1, fname2)	
 	bagWordScore = bagWordComparison(fname1, fname2)
 	apiCallScore = apiCallComparison(fname1, fname2)
 	# astSimilarityScore = astSimilarityComparison(fname1, fname2)
-	totalScore = stringDiffScore + bagWordScore + 15 * apiCallScore + astSimilarityScore
+	totalScore = stringDiffScore + 18 * bagWordScore + 270 * apiCallScore + astSimilarityScore
+	totalScore = totalScore / 4000
 	return totalScore
 	
 	
@@ -101,57 +103,73 @@ def kmeans(folder):
 			files.append(assignment)
 	randFiles = []
 	print "List constructed"
-	for i in range(0, 50):
+	for i in range(0, 15):
 		randFiles.append(files[randint(0, len(files)-1)])
 		
 	l = len(randFiles)
 	distances = []
 	print "Random list constructed"
 	
-	# m = [[0 for i in range(l)] for j in range(l)]
-	
-	# for i in range(l):
-		# for j in range(l):
-			# m[i][j] = automaticComparison(folder + randFiles[i], folder + randFiles[j])
-	
+	m = [[1 for i in range(l)] for j in range(l)]
 	
 	for i in range(l):
 		for j in range(i+1, l):
-			distances.append(automaticComparison(folder + randFiles[i], folder + randFiles[j]))
-	
-			
-	
+			sim = math.exp(-automaticComparison(folder + randFiles[i], folder + randFiles[j]))
+			if sim > 0.3:
+				m[i][j] = sim
+				m[j][i] = sim
+			else:
+				m[i][j] = 0
+				m[j][i] = 0
+
+
+
+#	for i in range(l):
+#		for j in range(i+1, l):
+#			distances.append(automaticComparison(folder + randFiles[i], folder + randFiles[j]))
+#
 	print "Distances calculated"
-	print "Max distance: " + str(max(distances))
-	print "Avarage distance: " + str(numpy.mean(distances))
-	under10 = 0
-	under50 = 0
-	under100 = 0
-	under150 = 0
-	over150 = 0
-	for distance in distances:
-		if distance < 10:
-			under10 += 1
-		elif distance < 50:
-			under50 += 1
-		elif distance <100:
-			under100 += 1
-		elif distance <150:
-			under150 += 1
-		else:
-			over150 += 1
-	print "Distances under 10: " + str(under10)
-	print "Distances over 10, under 50: " + str(under50)
-	print "Distances over 50, under 100: " + str(under100)
-	print "Distances over 100, under 150: " + str(under150)
-	print "Distances over 150: " + str(over150)
-		
-	a = numpy.array(distances, float)
-	# a = numpy.array(m, float)
+	print "Max distance: " + str(max(max(m)))
+	print "Avarage distance: " + str(numpy.mean(m))
+#	X = 3000
+#	Y = 5000
+#	Z = 7000
+#	W = 10000
+#	underX = 0
+#	underY = 0
+#	underZ = 0
+#	underW = 0
+#	overW = 0
+#	for distance in distances:
+#		if distance < X:
+#			underX += 1
+#		elif distance < Y:
+#			underY += 1
+#		elif distance < Z:
+#			underZ += 1
+#		elif distance < W:
+#			underW += 1
+#		else:
+#			overW += 1
+#	print "Distances under " + str(X) + ": " + str(underX)
+#	print "Distances over " + str(X) + ", under " + str(Y) + ": " + str(underY)
+#	print "Distances over " + str(Y) + ", under " + str(Z) + ": " + str(underZ)
+#	print "Distances over " + str(Z) + ", under " + str(W) + ": " + str(underW)
+#	print "Distances over " + str(W) + ": " + str(overW)
+#
+#	a = numpy.array(distances, float)
+	a = numpy.array(m, float)
 	print "Array constructed"
-	labels, error, nfound = Pycluster.kmedoids(distances, 8, 5)
-	print "K-medoids run"
-	resultPath = "C:/cygwin/home/johan/AliceDataCompared/"
+#	labels, error, nfound = Pycluster.kmedoids(distances, 8, 5)
+#	print "K-medoids run"
+
+	af = AffinityPropagation(affinity = 'precomputed').fit(a)
+	print "Affinity propagation run"
+
+	labels = af.labels_
+
+
+	resultPath = "/Users/Johan/Documents/AliceResults/"
 	
 	if os.path.exists(resultPath):
 		shutil.rmtree(resultPath)
@@ -180,7 +198,7 @@ def checkDistances(path):
 	
 if len(sys.argv) > 0:
     # kmeans(sys.argv[1])
-	kmeans("C:/cygwin/home/johan/alicedataflattened/2_4/")
+	kmeans("/Users/Johan/Documents/AliceData/2_4/")
 	# print automaticComparison("C:/cygwin/home/johan/AliceDataCompared/labels/22.16.txt", "C:/cygwin/home/johan/AliceDataCompared/labels/11.20.txt")
 else:
     print "Gimme more arguments"
