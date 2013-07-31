@@ -69,7 +69,7 @@ def parser():
 
 		if i == beginning_fns_counter: 
 			break
-
+		
 		method_name = get_method_name(tables[i])
 		root = Root_Node()
 		initialize_method(root, method_name)
@@ -78,8 +78,8 @@ def parser():
 		initialize_tree(tds[1], root)
 
 		for j in range(2, len(tds)): 
+			
 			bs = tds[j].find_all('b')
-
 			if nesting.top() == 0: 
 				nesting.pop()
 				if parents.top() != root: 
@@ -244,8 +244,13 @@ def process_method_call(td):
 	# if td is a method call, then creates a corresponding Method_Call node and adds
 	# it to the tree. 
 	tokens = get_b_tokens(td)
-	if len(tokens) == 1 and tokens[0].find('.') != -1: 
-		curr_node = Method_Call(tokens[0], None)
+	if len(tokens) > 0 and tokens[0].find('.') != -1: 
+		if len(tokens) > 1:
+			curr_node = Method_Call(tokens[0], None)
+			for param in tokens[1:]:
+				curr_node.insert_parameter(param)
+		else:
+			curr_node = Method_Call(tokens[0], None)
 		insert_into_tree(parents.top(), curr_node)
 
 def process_operators_from_tokens(tokens, num): 

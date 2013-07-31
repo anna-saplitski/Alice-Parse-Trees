@@ -6,18 +6,20 @@ import math
 import os
 import numpy
 import array
-import Pycluster
+# import Pycluster
 import shutil
+import re
 from sklearn.cluster import AffinityPropagation
 from random import randint
 
+#Run a straight up diff between the two text files, very slow
 def stringDiffComparison(fname1, fname2):
 	with open(fname1, "r") as fh1:
 		with open(fname2, "r") as fh2:
 			differ = difflib.Differ()
 			return len(list(differ.compare(fh1.read(), fh2.read())))
 
-
+#Compare the differences in how many times a word appears in each file
 def bagWordComparison(fname1, fname2):
 	with open(fname1, "r") as fh1:
 		with open(fname2, "r") as fh2:
@@ -31,6 +33,7 @@ def bagWordComparison(fname1, fname2):
 					score = score + bagsofwords[1][word]
 	return score
 	
+#Check for the Alice API calls move, turn and roll and do a sring DNA comparison between them
 def apiCallComparison(fname1, fname2):
 	with open(fname1, "r") as fh1:
 		with open(fname2, "r") as fh2:
@@ -67,32 +70,93 @@ def apiCallComparison(fname1, fname2):
 	
 def astSimilarityComparison(fname1, fname2):
 	return 0
+	
+#Specific comparison done for the dancing bunny comparison	
+def dancingBunnyComparison(fname1, fname2):
+	with open(fname1, "r") as fh1:
+		with open(fname2, "r") as fh2:
+			#Divide the text into lines
+			lines1 = fh1.read().split('\n')
+			lines2 = fh2.read().split('\n')
+			whileCount1 = 0
+			whileCount2 = 0
+			paramColl1 = []
+			paramColl2 = []
+			methodNames1 = []
+			methodNames2 = []
+			for line in lines1:
+				#Count the nr of loops
+				if "Loop" in line:
+					whileCount1 += 1
+				#Count the nr of parameters for each method
+				if "MethodCall" in line:
+					params = []
+					nextName = False
+					for word in line.split():
+						if nextName:
+							methodNames1.append(word)
+						if word == "MethodCall:":
+							nextName = True
+						else:
+							nextName = False
+						if "param" in word:
+							params.append(word)
+					paramColl1.append(params)
+			for line in lines2:
+				if "Loop" in line:
+					whileCount2 += 1
+				if "MethodCall" in line:
+					params = []
+					nextName = False
+					for word in line.split():
+						if nextName:
+							methodNames2.append(word)
+						if word == "MethodCall:":
+							nextName = True
+						else:
+							nextName = False
+						if "param" in word:
+							params.append(word)
+					paramColl2.append(params)
+	#Compare the nr of while loops
+	whileScore = math.fabs(whileCount1 - whileCount2)
+	paramScore = 0
+	#Compare nr of parameters for each method
+	for i in range(len(methodNames1)):
+		try:
+			index = methodNames2.index(methodNames1[i])
+			paramScore += math.fabs(len(paramColl1[i]) - len(paramColl2[index]))
+			paramColl2.pop(index)
+			methodNames2.pop(index)
+		except ValueError:
+			paramScore += len(paramColl1)
+		
+	for i in range(len(methodNames2)):
+		try:
+			index = methodNames1.index(methodNames2[i])
+		except ValueError:
+			paramScore += len(paramColl2[i])
+	
+	lengthScore = math.fabs(len(lines1) - len(lines2))
+	
+	return 5 * whileScore + paramScore + lengthScore/3.0
 
+#Sum all of the comparisons 
 def automaticComparison(fname1, fname2):
 	stringDiffScore = 0
 	bagWordScore = 0
 	apiCallScore = 0
 	astSimilarityScore = 0
-#	stringDiffScore = stringDiffComparison(fname1, fname2)	
-	bagWordScore = bagWordComparison(fname1, fname2)
-	apiCallScore = apiCallComparison(fname1, fname2)
+	dancingBunnyScore = 0
+	# stringDiffScore = stringDiffComparison(fname1, fname2)	
+	# bagWordScore = bagWordComparison(fname1, fname2)
+	# apiCallScore = apiCallComparison(fname1, fname2)
 	# astSimilarityScore = astSimilarityComparison(fname1, fname2)
-	totalScore = stringDiffScore + 18 * bagWordScore + 270 * apiCallScore + astSimilarityScore
-	totalScore = totalScore / 4000
+	dancingBunnyScore = dancingBunnyComparison(fname1, fname2)
+	totalScore = stringDiffScore + 18 * bagWordScore + 270 * apiCallScore + astSimilarityScore + dancingBunnyScore
+	# totalScore = totalScore / 4000
 	return totalScore
 	
-	
-	# print "Diff score was: " + str(stringDiffScore)
-	# print "Bag score was: " + str(bagWordScore)
-	# print "API score was: " + str(apiCallScore)
-	# print "AST score was: " + str(astSimilarityScore)
-	# print ""
-	# print "For a total score of: " + str(totalScore)
-	
-	# with open(fname1, "r") as fh1:
-			# with open(fname2, "r") as fh2:
-				# pass
-				
 def kmeans(folder):
 	if folder[-1] != '/':
 		folder = folder + '/'
@@ -101,29 +165,32 @@ def kmeans(folder):
 		notUsed, fileExtension = os.path.splitext(assignment)
 		if fileExtension == ".txt":
 			files.append(assignment)
-	randFiles = []
+	
+	files.sort(key=lambda x: [int(x.split('.')[i]) for i in range(len(x.split('.'))-1)])
+	
+	randFiles = files[:3000]
+		
+		
 	print "List constructed"
-	for i in range(0, 15):
-		randFiles.append(files[randint(0, len(files)-1)])
 		
 	l = len(randFiles)
 	distances = []
 	print "Random list constructed"
 	
+	# Used for Affinity propagation
 	m = [[1 for i in range(l)] for j in range(l)]
 	
 	for i in range(l):
 		for j in range(i+1, l):
 			sim = math.exp(-automaticComparison(folder + randFiles[i], folder + randFiles[j]))
-			if sim > 0.3:
+			if sim > 0.1:
 				m[i][j] = sim
 				m[j][i] = sim
 			else:
 				m[i][j] = 0
 				m[j][i] = 0
 
-
-
+# Used for kmedoids
 #	for i in range(l):
 #		for j in range(i+1, l):
 #			distances.append(automaticComparison(folder + randFiles[i], folder + randFiles[j]))
@@ -131,31 +198,7 @@ def kmeans(folder):
 	print "Distances calculated"
 	print "Max distance: " + str(max(max(m)))
 	print "Avarage distance: " + str(numpy.mean(m))
-#	X = 3000
-#	Y = 5000
-#	Z = 7000
-#	W = 10000
-#	underX = 0
-#	underY = 0
-#	underZ = 0
-#	underW = 0
-#	overW = 0
-#	for distance in distances:
-#		if distance < X:
-#			underX += 1
-#		elif distance < Y:
-#			underY += 1
-#		elif distance < Z:
-#			underZ += 1
-#		elif distance < W:
-#			underW += 1
-#		else:
-#			overW += 1
-#	print "Distances under " + str(X) + ": " + str(underX)
-#	print "Distances over " + str(X) + ", under " + str(Y) + ": " + str(underY)
-#	print "Distances over " + str(Y) + ", under " + str(Z) + ": " + str(underZ)
-#	print "Distances over " + str(Z) + ", under " + str(W) + ": " + str(underW)
-#	print "Distances over " + str(W) + ": " + str(overW)
+
 #
 #	a = numpy.array(distances, float)
 	a = numpy.array(m, float)
@@ -163,27 +206,59 @@ def kmeans(folder):
 #	labels, error, nfound = Pycluster.kmedoids(distances, 8, 5)
 #	print "K-medoids run"
 
-	af = AffinityPropagation(affinity = 'precomputed').fit(a)
+	af = AffinityPropagation(damping = 0.9, affinity = 'precomputed').fit(a)
 	print "Affinity propagation run"
-
+	clusters = af.cluster_centers_indices_
+	print "Number of clusters: " + str(len(clusters))
+	print clusters
 	labels = af.labels_
-
-
-	resultPath = "/Users/Johan/Documents/AliceResults/"
+	
+	
+	#Moves the files based on which cluster they ended up in
+	if PC:
+		resultPath = "C:/cygwin/home/Johan/AliceDataCompared/"
+	else:
+		resultPath = "/Users/Johan/Documents/AliceResults/"
 	
 	if os.path.exists(resultPath):
 		shutil.rmtree(resultPath)
 	os.makedirs(resultPath)
-	os.makedirs(resultPath + "labels")
+	os.makedirs(resultPath + "labels/")
+	os.makedirs(resultPath + "transitions/")
+	for i in range(len(clusters)):
+		os.makedirs(resultPath + str(i))
 	
-	for label in labels:
-		if not os.path.exists(resultPath + str(label)):
-			shutil.copyfile(folder + randFiles[label], resultPath + "labels" + '/' + randFiles[label])
-			os.makedirs(resultPath + str(label))
-	
+	for cluster in clusters:
+		shutil.copyfile(folder + randFiles[cluster], resultPath + "labels/" + randFiles[cluster])
+
+	#Print the order of states a user will go through
+	prev = None
+	labelChain = ["State transitions for each user:"]
+	labelChains = []
 	for i in range(len(randFiles)):
+		curr = re.split('\.', randFiles[i])[0]
+		if curr == prev:
+			if labels[i] != labelChain[-1]:
+				labelChain.append(labels[i])
+		else:
+			labelChains.append(labelChain)
+			labelChain = ["State transitions for " + curr + ": "]			
+			
+		prev = curr
 		shutil.copyfile(folder + randFiles[i], resultPath + str(labels[i]) + '/' + randFiles[i])
+	labelChains.append(labelChain)
+	print labelChains
+	
+	labelFile = open(resultPath + "transitions/labelChains.txt", "wb")
+	
+	
+	for lc in labelChains:
+		for l in lc:
+			labelFile.write(str(l) + " ")
+		labelFile.write('\n')
 		
+	labelFile.close()
+	
 	# checkDistances(resultPath)
 	
 	
@@ -198,7 +273,11 @@ def checkDistances(path):
 	
 if len(sys.argv) > 0:
     # kmeans(sys.argv[1])
-	kmeans("/Users/Johan/Documents/AliceData/2_4/")
-	# print automaticComparison("C:/cygwin/home/johan/AliceDataCompared/labels/22.16.txt", "C:/cygwin/home/johan/AliceDataCompared/labels/11.20.txt")
+	PC = True
+	if PC:
+		kmeans("C:/cygwin/home/Johan/AliceDataFlattened/9/")
+	else:
+		kmeans("/Users/Johan/Documents/AliceData/2_4/")
+	# print automaticComparison("C:/cygwin/home/johan/AliceDataFlattened/9/6.225.txt", "C:/cygwin/home/johan/AliceDataFlattened/9/3.71.txt")
 else:
     print "Gimme more arguments"

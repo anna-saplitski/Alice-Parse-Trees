@@ -1,4 +1,5 @@
 from node import Node 
+import sys
 methods = dict() # maps method names (strings) to their root node
 
 class Call( Node ): 
@@ -28,12 +29,13 @@ class Call( Node ):
 			curr_meth = methods[self.called_name]
 		except KeyError:
 			pass
+		
+		output = self.called_name
+		for param in self.parameters: 
+			output += ' param:' + param
+		print output
 		if curr_meth is not None:
 			curr_meth.print_node(indent_level)
-		else:
-			print self.called_name
-		for param in self.parameters: 
-			param.print_node(indent_level + 1)
 """
 Represents a method call. 
 """
