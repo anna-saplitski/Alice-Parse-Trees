@@ -138,8 +138,10 @@ def dancingBunnyComparison(fname1, fname2):
 			paramScore += len(paramColl2[i])
 	
 	lengthScore = math.fabs(len(lines1) - len(lines2))
-	
-	return 5 * whileScore + paramScore + lengthScore/3.0
+	# print "While: " + str(whileScore)
+	# print "Param: " + str(paramScore)
+	# print "Length: " + str(lengthScore)
+	return 10 * whileScore + paramScore + lengthScore/5.0
 
 #Sum all of the comparisons 
 def automaticComparison(fname1, fname2):
@@ -168,7 +170,7 @@ def kmeans(folder):
 	
 	files.sort(key=lambda x: [int(x.split('.')[i]) for i in range(len(x.split('.'))-1)])
 	
-	randFiles = files[:3000]
+	randFiles = files[:1000]
 		
 		
 	print "List constructed"
@@ -182,13 +184,16 @@ def kmeans(folder):
 	
 	for i in range(l):
 		for j in range(i+1, l):
-			sim = math.exp(-automaticComparison(folder + randFiles[i], folder + randFiles[j]))
-			if sim > 0.1:
-				m[i][j] = sim
-				m[j][i] = sim
-			else:
-				m[i][j] = 0
-				m[j][i] = 0
+			# sim = math.exp(-automaticComparison(folder + randFiles[i], folder + randFiles[j])/100.0)
+			sim = -automaticComparison(folder + randFiles[i], folder + randFiles[j])
+			# if sim > 0.05:
+				# m[i][j] = sim
+				# m[j][i] = sim
+			# else:
+				# m[i][j] = 0
+				# m[j][i] = 0
+			m[i][j] = sim
+			m[j][i] = sim
 
 # Used for kmedoids
 #	for i in range(l):
@@ -205,8 +210,8 @@ def kmeans(folder):
 	print "Array constructed"
 #	labels, error, nfound = Pycluster.kmedoids(distances, 8, 5)
 #	print "K-medoids run"
-
-	af = AffinityPropagation(damping = 0.9, affinity = 'precomputed').fit(a)
+	# p = [[-.5 for i in range(l)] for j in range(l)]
+	af = AffinityPropagation(preference = -float(205000), damping = .9).fit(a)
 	print "Affinity propagation run"
 	clusters = af.cluster_centers_indices_
 	print "Number of clusters: " + str(len(clusters))
@@ -235,10 +240,15 @@ def kmeans(folder):
 	prev = None
 	labelChain = ["State transitions for each user:"]
 	labelChains = []
+	transitionProb = [[0 for j in range(len(clusters))] for i in range(len(clusters)+1)]
 	for i in range(len(randFiles)):
 		curr = re.split('\.', randFiles[i])[0]
 		if curr == prev:
 			if labels[i] != labelChain[-1]:
+				if len(labelChain) > 1:
+					transitionProb[labelChain[-1]][labels[i]] += 1
+				else:
+					transitionProb[-1][labels[i]] += 1
 				labelChain.append(labels[i])
 		else:
 			labelChains.append(labelChain)
@@ -250,13 +260,25 @@ def kmeans(folder):
 	print labelChains
 	
 	labelFile = open(resultPath + "transitions/labelChains.txt", "wb")
-	
-	
+	print transitionProb
+	for j in range(len(clusters)):
+		sum = float(numpy.sum([row[j] for row in transitionProb]))
+		print "Sum is: " + str(sum)
+		for i in range(len(clusters)):
+			if sum > 0:
+				transitionProb[i][j] /= sum
+			else:
+				transitionProb[i][j] = float('nan')
+				
+	for j in range(len(clusters)):
+		print [row[j] for row in transitionProb]
+		
 	for lc in labelChains:
 		for l in lc:
 			labelFile.write(str(l) + " ")
 		labelFile.write('\n')
 		
+	
 	labelFile.close()
 	
 	# checkDistances(resultPath)
