@@ -6,11 +6,13 @@ import math
 import os
 import numpy
 import array
-# import Pycluster
+import xlwt
+import Pycluster
 import shutil
 import re
 from sklearn.cluster import AffinityPropagation
 from random import randint
+from scipy.sparse import bsr_matrix
 
 #Run a straight up diff between the two text files, very slow
 def stringDiffComparison(fname1, fname2):
@@ -151,11 +153,12 @@ def automaticComparison(fname1, fname2):
 	astSimilarityScore = 0
 	dancingBunnyScore = 0
 	# stringDiffScore = stringDiffComparison(fname1, fname2)	
-	# bagWordScore = bagWordComparison(fname1, fname2)
-	# apiCallScore = apiCallComparison(fname1, fname2)
+	bagWordScore = bagWordComparison(fname1, fname2)
+	apiCallScore = apiCallComparison(fname1, fname2)
 	# astSimilarityScore = astSimilarityComparison(fname1, fname2)
 	dancingBunnyScore = dancingBunnyComparison(fname1, fname2)
 	totalScore = stringDiffScore + 18 * bagWordScore + 270 * apiCallScore + astSimilarityScore + dancingBunnyScore
+	# totalScore = dancingBunnyScore
 	# totalScore = totalScore / 4000
 	return totalScore
 	
@@ -170,22 +173,24 @@ def kmeans(folder):
 	
 	files.sort(key=lambda x: [int(x.split('.')[i]) for i in range(len(x.split('.'))-1)])
 	
-	randFiles = files[:1000]
+	randFiles = files[:4025]
 		
 		
-	print "List constructed"
+	
 		
 	l = len(randFiles)
-	distances = []
-	print "Random list constructed"
+	print "List constructed, length: " + str(l)
+	print "Original length: " + str(len(files))
 	
 	# Used for Affinity propagation
-	m = [[1 for i in range(l)] for j in range(l)]
+	# m = [[1 for i in range(l)] for j in range(l)]
+	#m = bsr_matrix((l,l), dtype=int);
+	m = numpy.array([[0 for i in range(l)] for j in range(l)])
 	
 	for i in range(l):
 		for j in range(i+1, l):
-			# sim = math.exp(-automaticComparison(folder + randFiles[i], folder + randFiles[j])/100.0)
-			sim = -automaticComparison(folder + randFiles[i], folder + randFiles[j])
+			# sim = -math.exp(automaticComparison(folder + randFiles[i], folder + randFiles[j])/100.0)
+			sim = -(automaticComparison(folder + randFiles[i], folder + randFiles[j]))
 			# if sim > 0.05:
 				# m[i][j] = sim
 				# m[j][i] = sim
@@ -195,28 +200,43 @@ def kmeans(folder):
 			m[i][j] = sim
 			m[j][i] = sim
 
-# Used for kmedoids
-#	for i in range(l):
-#		for j in range(i+1, l):
-#			distances.append(automaticComparison(folder + randFiles[i], folder + randFiles[j]))
-#
 	print "Distances calculated"
-	print "Max distance: " + str(max(max(m)))
-	print "Avarage distance: " + str(numpy.mean(m))
 
-#
-#	a = numpy.array(distances, float)
-	a = numpy.array(m, float)
 	print "Array constructed"
-#	labels, error, nfound = Pycluster.kmedoids(distances, 8, 5)
-#	print "K-medoids run"
-	# p = [[-.5 for i in range(l)] for j in range(l)]
-	af = AffinityPropagation(preference = -float(205000), damping = .9).fit(a)
-	print "Affinity propagation run"
+	print "Mean: " + str(numpy.mean(m))
+	
+	
+	
+	# labels, error, nfound = Pycluster.kmedoids(m, 16, 5)
+	# print "K-medoids run, labels: "
+	# print labels
+	# clusters = []
+	# for l in labels:
+		# if l not in clusters:
+			# clusters.append(l)
+	# print "Number of clusters: " + str(len(clusters))
+	
+	# i = 0
+	# for c in clusters:
+		# j = 0
+		# for l in labels:
+			# if l == c:
+				# labels[j] = i
+			# j += 1
+		# clusters[i] = i
+		# i += 1
+		
+	
+	p = [[-.5 for i in range(l)] for j in range(l)]
+	# Spec: 205000
+	# Api: 200000
+	af = AffinityPropagation(preference = float(1000000 * numpy.mean(m)), damping = .9).fit(m)
+	labels = af.labels_
+	print "Affinity propagation run, labels: "
+	print labels
 	clusters = af.cluster_centers_indices_
 	print "Number of clusters: " + str(len(clusters))
 	print clusters
-	labels = af.labels_
 	
 	
 	#Moves the files based on which cluster they ended up in
@@ -225,6 +245,7 @@ def kmeans(folder):
 	else:
 		resultPath = "/Users/Johan/Documents/AliceResults/"
 	
+	xlsfolder = "C:/cygwin/home/Johan/AliceDataXLS/"
 	if os.path.exists(resultPath):
 		shutil.rmtree(resultPath)
 	os.makedirs(resultPath)
@@ -260,27 +281,168 @@ def kmeans(folder):
 	print labelChains
 	
 	labelFile = open(resultPath + "transitions/labelChains.txt", "wb")
-	print transitionProb
 	for j in range(len(clusters)):
 		sum = float(numpy.sum([row[j] for row in transitionProb]))
-		print "Sum is: " + str(sum)
 		for i in range(len(clusters)):
 			if sum > 0:
 				transitionProb[i][j] /= sum
 			else:
 				transitionProb[i][j] = float('nan')
 				
-	for j in range(len(clusters)):
-		print [row[j] for row in transitionProb]
 		
+	
+	
+	book = xlwt.Workbook()
+	sh1 = book.add_sheet("State transitions")
+	sh2 = None
+	sh3 = None
+	sh = sh1
+	font = xlwt.Font()
+	style = xlwt.XFStyle()
+	font.bold = True
+	style.font = font
+	sh.write(0, 0, "In/Out", style)
+	for i in range(len(transitionProb)-1):
+		sh.write(i+1, 0, str(i+1), style)
+	sh.write(len(transitionProb), 0, "Start", style)
+	k = 0
+	for j in range(len(transitionProb[0])):
+		if k >= 511:
+			if not sh3:
+					sh3 = book.add_sheet("State transitions - cont 2")
+			sh3.write(0, k-511, str(k+1), style)
+		elif k >= 255:
+			if not sh2:
+					sh2 = book.add_sheet("State transitions - cont")
+			sh2.write(0, k-255, str(k+1), style)
+		else:
+			sh1.write(0, k+1, str(k+1), style)
+		k += 1
+	i = 1
+	sh = sh1
+	for lc in transitionProb:
+		j = 1
+		for l in lc:
+			if j >= 512:
+				if not sh3:
+					sh3 = book.add_sheet("State transitions - cont 2")		
+				sh3.write(i, j-512, str(l))
+			elif j >= 256:				
+				if not sh2:
+					sh2 = book.add_sheet("State transitions - cont")		
+				sh2.write(i, j-256, str(l))
+			else:
+				sh1.write(i, j, str(l))
+			#print "About to write, i = " + str(i) + ", j = " + str(j)
+			j += 1
+		i += 1
+	
+	sh1 = book.add_sheet("Transition chains")
+	sh2 = None
+	sh3 = None
+	i = 0
+	j = 0
+	
+	
+	stats = [len(lc) for lc in labelChains]
 	for lc in labelChains:
 		for l in lc:
-			labelFile.write(str(l) + " ")
-		labelFile.write('\n')
-		
+			if j >= 512:
+				if not sh3:
+					sh3 = book.add_sheet("Transition chains - cont")
+				sh3.write(i, j-512, l)
+			elif j >= 256:
+				if not sh2:
+					sh2 = book.add_sheet("Transition chains - cont")
+				sh2.write(i, j-256, l)
+			else:
+				sh1.write(i, j, l)
+			j += 1
+		i += 1
+		j = 0
 	
+	sh = book.add_sheet("Metadata")
+	
+	noCluster = len(transitionProb) - 1
+	meanNos = numpy.mean(stats)
+	medianNos = numpy.median(stats)
+	maxNos = numpy.max(stats)
+	minNos = numpy.min(stats)
+	
+	numLinkedStates = 0
+	numSimilarStates = 0
+	numTransitions = 0
+	numLiveTransitions = 0
+	numDeadTransitions = 0
+	for cl in transitionProb:
+		for c in cl:
+			if c == 1:
+				numLinkedStates += 1
+			elif c > 0.85:
+				numSimilarStates += 1
+			numTransitions += 1
+			if c == 0:
+				numDeadTransitions += 1
+			else:
+				numLiveTransitions += 1
+	
+	print noCluster
+	print meanNos
+	print medianNos
+	print maxNos
+	print minNos
+	print numLinkedStates
+	print numSimilarStates
+	print numDeadTransitions
+	sh.write(0, 0, "Number of clusters")
+	sh.write(0, 1, str(noCluster))
+	sh.write(1, 0, "Mean number of states")
+	sh.write(1, 1, str(meanNos))
+	sh.write(2, 0, "Median number of states")
+	sh.write(2, 1, str(medianNos))
+	sh.write(3, 0, "Max number of states")
+	sh.write(3, 1, str(maxNos))
+	sh.write(4, 0, "Min number of states")
+	sh.write(4, 1, str(minNos))
+	sh.write(5, 0, "Number of joined states")
+	sh.write(5, 1, str(numLinkedStates))
+	sh.write(6, 0, "Number of similar states")
+	sh.write(6, 1, str(numSimilarStates))
+	sh.write(7, 0, "Number of transitions")
+	sh.write(7, 1, str(numTransitions))
+	sh.write(8, 0, "Number of taken transitions")
+	sh.write(8, 1, str(numLiveTransitions))
+	sh.write(9, 0, "Number of untaken transitions")
+	sh.write(9, 1, str(numDeadTransitions))
+
+	
+	
+	labelFile.write("\\begin{table}\n")	
+	labelFile.write("\\centering\n")
+	labelFile.write("\\begin{tabular}{|l|l|}\n\\hline\n")
+	labelFile.write("\\textbf{" + name + "} & \\textbf{Result}\\\\\n\\hline\n")
+	
+	labelFile.write("Number of clusters & " + str(noCluster) + '\\\\\n')
+	labelFile.write("Mean number of states & " + str(medianNos) + '\\\\\n')
+	labelFile.write("Median number of states & " + str(noCluster) + '\\\\\n')
+	labelFile.write("Max number of states & " + str(maxNos) + '\\\\\n')
+	labelFile.write("Min number of states & " + str(minNos) + '\\\\\n')
+	labelFile.write("Number of joined states & " + str(numLinkedStates) + '\\\\\n')
+	labelFile.write("Number of similar states & " + str(numSimilarStates) + '\\\\\n')
+	labelFile.write("Number of transitions & " + str(numTransitions) + '\\\\\n')
+	labelFile.write("Number of taken transitions & " + str(numLiveTransitions) + '\\\\\n')
+	labelFile.write("Number of untaken transitions & " + str(numDeadTransitions) + '\\\\\n')
+	
+	labelFile.write("\\hline\n")
+	labelFile.write("\\end{tabular}\n")
+	labelFile.write("\\label{TODO}\n")
+	labelFile.write("\\caption{TODO}\n")
+	labelFile.write("\\end{table}\n")
+	labelFile.write("\n\n\n")
+	
+	
+	book.save(xlsfolder + name + ".xls")
 	labelFile.close()
-	
 	# checkDistances(resultPath)
 	
 	
@@ -292,10 +454,11 @@ def checkDistances(path):
 			for file2 in os.listdir(path + folder):
 				print(automaticComparison(path + folder + '/' + file1, path + folder + '/' + file2))
 	
-	
+	s
 if len(sys.argv) > 0:
     # kmeans(sys.argv[1])
 	PC = True
+	name = "AffinityBalanced" 
 	if PC:
 		kmeans("C:/cygwin/home/Johan/AliceDataFlattened/9/")
 	else:
