@@ -10,17 +10,24 @@ import xlwt
 import Pycluster
 import shutil
 import re
+import gc
 from sklearn.cluster import AffinityPropagation
 from random import randint
 from scipy.sparse import bsr_matrix
 
 
-name = "Dummy"
-numFilesToCluster = 20
-
+name = "BoW"
+numFilesToCluster = 3325
+stringDiffParam = 0
+bagWordParam = 1
+apiCallParam = 0
+dancingBunnyParam = 0
+affinityPreference = 30000
+#API: 30000
+#BOW = 30000
 folder = "C:/cygwin/home/Johan/AliceDataFlattened/9/"
-resultPath = "C:/cygwin/home/Johan/AliceDataCompared/"	
-xlsfolder = "C:/cygwin/home/Johan/AliceDataXLS/"
+resultPathBase = "C:/cygwin/home/Johan/AliceDataClusters/"	
+xlsPathBase = "C:/cygwin/home/Johan/AliceDataXLS/"
 
 files = []
 for assignment in os.listdir (folder):
@@ -39,30 +46,31 @@ print "Clustered file list constructed, length: " + str(numFiles)
 print "Full length: " + str(len(files))
 	
 def cluster():
-	
 	m = numpy.array([[0 for i in rangeFiles] for j in rangeFiles])
 	
 	for i in rangeFiles:
 		for j in range(i+1, numFiles):
-			distance = automaticComparison(folder + filesToCluster[i], folder + filesToCluster[j])
+			distance = float(automaticComparison(folder + filesToCluster[i], folder + filesToCluster[j]))
+			# Square to minimize quadratic error
+			# distanceSquared = distance * distance
+			m[i][j] = distance
+			m[j][i] = distance
 			
-			#Square to minimize quadratic error
-			distanceSquared = distance * distance
-			m[i][j] = distanceSquared
-			m[j][i] = distanceSquared
-
 	print "Distances matrix calculated"
-	print "Mean of matrix: " + str(numpy.mean(m))
-	
-	#Negate since affinity propagation works on negative distance values
-	labels, clusters = affinityPropagation(m)
-	print "Affinity propagation run, number of clusters: " + str(len(clusters))
-	
+	print "Median of matrix: " + str(numpy.median(m))
 	
 	labels, clusters = kmedoids(m)
 	print "K-medoids run, number of clusters: " + str(len(clusters))
 	
-	moveFiles(filesToCluster, labels, clusters)
+	moveFiles(filesToCluster, labels, clusters, "KMedoids/")
+	
+	#Negate since affinity propagation works on negative distance values
+	m = -m
+	gc.collect()
+	labels, clusters = affinityPropagation(m)
+	print "Affinity propagation run, number of clusters: " + str(len(clusters))
+	
+	moveFiles(filesToCluster, labels, clusters, "AffinityPropagation/")
 	
 def kmedoids(m):
 	labels, error, nfound = Pycluster.kmedoids(m, 16, 5)
@@ -85,13 +93,16 @@ def kmedoids(m):
 	return labels, clusters
 	
 def affinityPropagation(m):
-	af = AffinityPropagation(preference = float(-numpy.mean(m)), damping = .9).fit(-m)
+	af = AffinityPropagation(preference = float(affinityPreference * numpy.median(m)), damping = .9).fit(m)
 	labels = af.labels_
 	clusters = af.cluster_centers_indices_
 	return labels, clusters
 
 	
-def moveFiles(filesToCluster, labels, clusters):
+def moveFiles(filesToCluster, labels, clusters, endOfFilePath):
+
+	resultPath = resultPathBase + endOfFilePath
+	xlsPath = xlsPathBase + endOfFilePath
 
 	lenClusters = len(clusters)
 	rangeClusters = range(lenClusters)
@@ -111,6 +122,7 @@ def moveFiles(filesToCluster, labels, clusters):
 	prev = None
 	labelChain = ["State transitions for each user:"]
 	labelChains = []
+	clusterCount = [0 for i in rangeClusters]
 	transitionProb = [[0 for j in rangeClusters] for i in range(lenClusters+1)]
 	for i in rangeFiles:
 		curr = re.split('\.', filesToCluster[i])[0]
@@ -123,10 +135,13 @@ def moveFiles(filesToCluster, labels, clusters):
 				labelChain.append(labels[i])
 		else:
 			labelChains.append(labelChain)
-			labelChain = ["State transitions for " + curr + ": "]			
-			
+			labelChain = ["State transitions for " + curr + ": "]						
 		prev = curr
 		shutil.copyfile(folder + filesToCluster[i], resultPath + str(labels[i]) + '/' + filesToCluster[i])
+		clusterCount[labels[i]] += 1
+	
+	print "Cluster count:"
+	print clusterCount
 	labelChains.append(labelChain)
 	latexFile = open(resultPath + "transitions/latex_table.txt", "wb")
 	
@@ -211,6 +226,10 @@ def moveFiles(filesToCluster, labels, clusters):
 	
 	stats = [len(lc) for lc in labelChains]
 	noCluster = len(transitionProb) - 1
+	meanNol = numpy.mean(clusterCount)
+	medianNol = numpy.median(clusterCount)
+	maxNol = numpy.max(clusterCount)
+	minNol = numpy.min(clusterCount)
 	meanNos = numpy.mean(stats)
 	medianNos = numpy.median(stats)
 	maxNos = numpy.max(stats)
@@ -234,6 +253,10 @@ def moveFiles(filesToCluster, labels, clusters):
 				numDeadTransitions += 1
 	
 	print "Number of clusters: " + str(noCluster)
+	print "Mean number of labels: " + str(meanNol)
+	print "Median number of labels: " + str(medianNol)
+	print "Max number of labels: " + str(maxNol)
+	print "Min number of labels: " + str(minNol)
 	print "Mean number of states: " + str(meanNos)
 	print "Median number of states: " + str(medianNos)
 	print "Max number of states: " + str(maxNos)
@@ -242,27 +265,35 @@ def moveFiles(filesToCluster, labels, clusters):
 	print "Number of similar states: " + str(numSimilarStates)
 	print "Number of transitions: " + str(numTransitions)
 	print "Number of taken transitions: " + str(numLiveTransitions)
-	print "Number of similar states: " + str(numDeadTransitions)
+	print "Number of untaken transitions: " + str(numDeadTransitions)
 	sh.write(0, 0, "Number of clusters")
 	sh.write(0, 1, str(noCluster))
-	sh.write(1, 0, "Mean number of states")
-	sh.write(1, 1, str(meanNos))
-	sh.write(2, 0, "Median number of states")
-	sh.write(2, 1, str(medianNos))
-	sh.write(3, 0, "Max number of states")
-	sh.write(3, 1, str(maxNos))
-	sh.write(4, 0, "Min number of states")
-	sh.write(4, 1, str(minNos))
-	sh.write(5, 0, "Number of joined states")
-	sh.write(5, 1, str(numLinkedStates))
-	sh.write(6, 0, "Number of similar states")
-	sh.write(6, 1, str(numSimilarStates))
-	sh.write(7, 0, "Number of transitions")
-	sh.write(7, 1, str(numTransitions))
-	sh.write(8, 0, "Number of taken transitions")
-	sh.write(8, 1, str(numLiveTransitions))
-	sh.write(9, 0, "Number of similar states")
-	sh.write(9, 1, str(numDeadTransitions))
+	sh.write(1, 0, "Mean number of labels")
+	sh.write(1, 1, str(meanNol))
+	sh.write(2, 0, "Median number of labels")
+	sh.write(2, 1, str(medianNol))
+	sh.write(3, 0, "Max number of labels")
+	sh.write(3, 1, str(maxNol))
+	sh.write(4, 0, "Min number of labels")
+	sh.write(4, 1, str(minNol))
+	sh.write(5, 0, "Mean number of labels")
+	sh.write(5, 1, str(meanNos))
+	sh.write(6, 0, "Median number of states")
+	sh.write(6, 1, str(medianNos))
+	sh.write(7, 0, "Max number of states")
+	sh.write(7, 1, str(maxNos))
+	sh.write(8, 0, "Min number of states")
+	sh.write(8, 1, str(minNos))
+	sh.write(9, 0, "Number of joined states")
+	sh.write(9, 1, str(numLinkedStates))
+	sh.write(10, 0, "Number of similar states")
+	sh.write(10, 1, str(numSimilarStates))
+	sh.write(11, 0, "Number of transitions")
+	sh.write(11, 1, str(numTransitions))
+	sh.write(12, 0, "Number of taken transitions")
+	sh.write(12, 1, str(numLiveTransitions))
+	sh.write(13, 0, "Number of similar states")
+	sh.write(13, 1, str(numDeadTransitions))
 
 	
 	
@@ -272,8 +303,12 @@ def moveFiles(filesToCluster, labels, clusters):
 	latexFile.write("\\textbf{" + name + "} & \\textbf{Result}\\\\\n\\hline\n")
 	
 	latexFile.write("Number of clusters & " + str(noCluster) + '\\\\\n')
-	latexFile.write("Mean number of states & " + str(medianNos) + '\\\\\n')
-	latexFile.write("Median number of states & " + str(noCluster) + '\\\\\n')
+	latexFile.write("Mean number of labels & " + str(meanNol) + '\\\\\n')
+	latexFile.write("Median number of labels & " + str(medianNol) + '\\\\\n')
+	latexFile.write("Max number of labels & " + str(maxNol) + '\\\\\n')
+	latexFile.write("Min number of labels & " + str(minNol) + '\\\\\n')
+	latexFile.write("Mean number of states & " + str(meanNos) + '\\\\\n')
+	latexFile.write("Median number of states & " + str(medianNos) + '\\\\\n')
 	latexFile.write("Max number of states & " + str(maxNos) + '\\\\\n')
 	latexFile.write("Min number of states & " + str(minNos) + '\\\\\n')
 	latexFile.write("Number of joined states & " + str(numLinkedStates) + '\\\\\n')
@@ -290,7 +325,7 @@ def moveFiles(filesToCluster, labels, clusters):
 	latexFile.write("\n\n\n")
 	
 	
-	book.save(xlsfolder + name + ".xls")
+	book.save(xlsPath + name + ".xls")
 	latexFile.close()
 
 
@@ -300,11 +335,15 @@ def automaticComparison(fname1, fname2):
 	bagWordScore = 0
 	apiCallScore = 0
 	dancingBunnyScore = 0
-	# stringDiffScore = stringDiffComparison(fname1, fname2)	
-	bagWordScore = bagWordComparison(fname1, fname2)
-	apiCallScore = apiCallComparison(fname1, fname2)
-	dancingBunnyScore = dancingBunnyComparison(fname1, fname2)
-	totalScore = stringDiffScore + 18 * bagWordScore + 270 * apiCallScore + dancingBunnyScore
+	if stringDiffParam > 0:
+		stringDiffScore = stringDiffParam * stringDiffComparison(fname1, fname2)
+	if bagWordParam > 0:
+		bagWordScore = bagWordParam * bagWordComparison(fname1, fname2)
+	if apiCallParam > 0:
+		apiCallScore = apiCallParam * apiCallComparison(fname1, fname2)
+	if dancingBunnyParam > 0:
+		dancingBunnyScore = dancingBunnyParam * dancingBunnyComparison(fname1, fname2)
+	totalScore = stringDiffScore + bagWordScore + apiCallScore + dancingBunnyScore
 	return totalScore
 	
 # Run a straight up diff between the two text files, very slow
