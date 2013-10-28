@@ -16,15 +16,18 @@ from random import randint
 from scipy.sparse import bsr_matrix
 
 
-name = "BoW"
+name = "APICall"
 numFilesToCluster = 3325
 stringDiffParam = 0
-bagWordParam = 1
-apiCallParam = 0
+bagWordParam = 0
+apiCallParam = 1
 dancingBunnyParam = 0
 affinityPreference = 30000
-#API: 30000
-#BOW = 30000
+#APICall = 30000
+#BoW = 60000
+#Specialized = 2400000
+#Balanced = 24000000
+#Belanced coeff = BOW: 1, API: 0.5, SPEC: 6
 folder = "C:/cygwin/home/Johan/AliceDataFlattened/9/"
 resultPathBase = "C:/cygwin/home/Johan/AliceDataClusters/"	
 xlsPathBase = "C:/cygwin/home/Johan/AliceDataXLS/"
@@ -101,7 +104,7 @@ def affinityPropagation(m):
 	
 def moveFiles(filesToCluster, labels, clusters, endOfFilePath):
 
-	resultPath = resultPathBase + endOfFilePath
+	resultPath = resultPathBase + endOfFilePath + name + '/'
 	xlsPath = xlsPathBase + endOfFilePath
 
 	lenClusters = len(clusters)
@@ -143,7 +146,6 @@ def moveFiles(filesToCluster, labels, clusters, endOfFilePath):
 	print "Cluster count:"
 	print clusterCount
 	labelChains.append(labelChain)
-	latexFile = open(resultPath + "transitions/latex_table.txt", "wb")
 	
 	for j in rangeClusters:
 		sum = float(numpy.sum([row[j] for row in transitionProb]))
@@ -295,39 +297,26 @@ def moveFiles(filesToCluster, labels, clusters, endOfFilePath):
 	sh.write(13, 0, "Number of similar states")
 	sh.write(13, 1, str(numDeadTransitions))
 
-	
-	
-	latexFile.write("\\begin{table}\n")	
-	latexFile.write("\\centering\n")
-	latexFile.write("\\begin{tabular}{|l|l|}\n\\hline\n")
-	latexFile.write("\\textbf{" + name + "} & \\textbf{Result}\\\\\n\\hline\n")
-	
-	latexFile.write("Number of clusters & " + str(noCluster) + '\\\\\n')
-	latexFile.write("Mean number of labels & " + str(meanNol) + '\\\\\n')
-	latexFile.write("Median number of labels & " + str(medianNol) + '\\\\\n')
-	latexFile.write("Max number of labels & " + str(maxNol) + '\\\\\n')
-	latexFile.write("Min number of labels & " + str(minNol) + '\\\\\n')
-	latexFile.write("Mean number of states & " + str(meanNos) + '\\\\\n')
-	latexFile.write("Median number of states & " + str(medianNos) + '\\\\\n')
-	latexFile.write("Max number of states & " + str(maxNos) + '\\\\\n')
-	latexFile.write("Min number of states & " + str(minNos) + '\\\\\n')
-	latexFile.write("Number of joined states & " + str(numLinkedStates) + '\\\\\n')
-	latexFile.write("Number of similar states & " + str(numSimilarStates) + '\\\\\n')
-	latexFile.write("Number of transitions & " + str(numTransitions) + '\\\\\n')
-	latexFile.write("Number of taken transitions & " + str(numLiveTransitions) + '\\\\\n')
-	latexFile.write("Number of untaken transitions & " + str(numDeadTransitions) + '\\\\\n')
-	
-	latexFile.write("\\hline\n")
-	latexFile.write("\\end{tabular}\n")
-	latexFile.write("\\label{TODO}\n")
-	latexFile.write("\\caption{TODO}\n")
-	latexFile.write("\\end{table}\n")
-	latexFile.write("\n\n\n")
-	
-	
 	book.save(xlsPath + name + ".xls")
+	
+	latexFile = open(resultPath + "transitions/latex_table.txt", "wb")
+	latexFile.write("Number of clusters & " + str(noCluster) + ' &\n')
+	latexFile.write("Mean number of labels & " + str(meanNol) + ' &\n')
+	latexFile.write("Median number of labels & " + str(medianNol) + ' &\n')
+	latexFile.write("Max number of labels & " + str(maxNol) + ' &\n')
+	latexFile.write("Min number of labels & " + str(minNol) + ' &\n')
+	latexFile.write("Mean number of states & " + str(meanNos) + ' &\n')
+	latexFile.write("Median number of states & " + str(medianNos) + ' &\n')
+	latexFile.write("Max number of states & " + str(maxNos) + ' &\n')
+	latexFile.write("Min number of states & " + str(minNos) + ' &\n')
+	latexFile.write("Number of joined states & " + str(numLinkedStates) + ' &\n')
+	latexFile.write("Number of similar states & " + str(numSimilarStates) + ' &\n')
+	latexFile.write("Number of transitions & " + str(numTransitions) + ' &\n')
+	latexFile.write("Number of taken transitions & " + str(numLiveTransitions) + ' &\n')
+	latexFile.write("Number of untaken transitions & " + str(numDeadTransitions) + ' &\n')
+	
 	latexFile.close()
-
+	
 
 # Sum all of the comparisons 
 def automaticComparison(fname1, fname2):
