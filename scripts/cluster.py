@@ -1,8 +1,5 @@
 import sys
 import difflib
-import collections
-import re
-import math
 import os
 import numpy
 import array
@@ -17,9 +14,18 @@ from scipy.sparse import bsr_matrix
 from filecomparison import fileComparison
 
 
-name = "dummy"
-numFilesToCluster = 100
-affinityPreference = 16000
+name = "Balanced"
+numFilesToCluster = 3325
+affinityPreference = 24000000
+#APICall = 16000
+#BoW = 60000
+#Specialized = 2400000
+#Balanced = 24000000
+#Belanced coeff = BOW: 1, API: 0.5, SPEC: 6 
+stringDiffParam = 0
+bagWordParam = 1
+apiCallParam = 0.5
+dancingBunnyParam = 6
 folder = "C:/cygwin/home/Johan/AliceDataFlattened/9/"
 resultPathBase = "C:/cygwin/home/Johan/AliceDataClusters/"
 xlsPathBase = "C:/cygwin/home/Johan/AliceDataXLS/"
@@ -45,7 +51,13 @@ def cluster():
 
 	for i in rangeFiles:
 		for j in range(i+1, numFiles):
-			distance = float(fileComparison(folder + filesToCluster[i], folder + filesToCluster[j]))
+			distance = float(fileComparison(
+							folder + filesToCluster[i], 
+							folder + filesToCluster[j],  
+							stringDiffParam,
+							bagWordParam, 
+							apiCallParam, 
+							dancingBunnyParam))
 			# Square to minimize quadratic error
 			# distanceSquared = distance * distance
 			m[i][j] = distance

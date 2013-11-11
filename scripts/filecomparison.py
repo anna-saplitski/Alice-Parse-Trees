@@ -1,11 +1,9 @@
-#Belanced coeff = BOW: 1, API: 0.5, SPEC: 6 
-stringDiffParam = 0
-bagWordParam = 0
-apiCallParam = 1
-dancingBunnyParam = 0
+import collections
+import re
+import math
 
 # Sum all of the comparisons 
-def fileComparison(fname1, fname2):
+def fileComparison(fname1, fname2, stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam):
 	stringDiffScore = 0
 	bagWordScore = 0
 	apiCallScore = 0
