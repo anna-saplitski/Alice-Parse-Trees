@@ -16,14 +16,27 @@ kmPath = basePath + "KMedoids/"
 
 def functionComparison(function, stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam):
 	pairComparison(afPath + function + '/labels/', stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
-	# subComparison(stuckPath, afPath + function + '/labels/', stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
-	# subComparison(notStuckPath, afPath + function + '/labels/', stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
-	# subComparison(stuckPath, kmPath + function + '/labels/', stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
-	# subComparison(notStuckPath, kmPath + function + '/labels/', stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
+	# pairComparison(kmPath + function + '/labels/', stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
 	
 def pairComparison(folder2, stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam):
-	subComparison(stuckPath, folder2, stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
-	subComparison(notStuckPath, folder2, stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
+	stuckClust = subComparison(stuckPath, folder2, stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
+	notStuckClust = subComparison(notStuckPath, folder2, stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam)
+	
+	common = 0
+	unique1 = 0
+	unique2 = 0
+	for clust in stuckClust:
+		if clust in notStuckClust:
+			common += 1
+		else:
+			unique1 +=1
+				
+	for clust in notStuckClust:
+		if clust not in stuckClust:
+			unique2 += 1
+	print "Common: " + str(common)
+	print "Unique in stuck: " + str(unique1)
+	print "Unique in not stuck: " + str(unique2)
 	
 def subComparison(folder1, folder2, stringDiffParam, bagWordParam, apiCallParam, dancingBunnyParam):		
 	min = float('inf')
@@ -44,7 +57,7 @@ def subComparison(folder1, folder2, stringDiffParam, bagWordParam, apiCallParam,
 	return foundClust
 		
 		
-# functionComparison("BoW", 0, 1, 0, 0)
-# functionComparison("APICall", 0, 0, 1, 0)
-# functionComparison("Specialized", 0, 0, 0, 1)
+functionComparison("BoW", 0, 1, 0, 0)
+functionComparison("APICall", 0, 0, 1, 0)
+functionComparison("Specialized", 0, 0, 0, 1)
 functionComparison("Balanced", 0, 1, 0.5, 6)
